@@ -7,6 +7,7 @@ import torch.nn.functional as F
 from torch.utils.data import DataLoader, TensorDataset
 from tqdm.auto import tqdm
 
+# I'm not entirely sure this will work, just basing it off the torch documentation
 best_model_path = "path.pt"
 
 # Just set some dummy values for the moment
