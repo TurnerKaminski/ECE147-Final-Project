@@ -8,7 +8,7 @@ from torch.utils.data import DataLoader, TensorDataset
 from tqdm.auto import tqdm
 
 # I'm not entirely sure this will work, just basing it off the torch documentation
-best_model_path = "path.pt"
+best_model_path = "model_checkpoints/best_model.pt"
 
 # Just set some dummy values for the moment
 def fit(model, X, y, device, epochs=10, batch_size=64, lr=1e-3, weight_decay=0, valid_size=0.2, random_state=0, print_acc=False,):
