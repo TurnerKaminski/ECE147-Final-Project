@@ -111,7 +111,7 @@ def train(model, dataloader, optimizer, device):
     accuracy = correct / total 
     return round(accuracy, 5)
 
-def evaluate(model, dataloader, device, batch_size=256):
+def evaluate(model, dataloader, device):
     """
     Evaluate the model performance
 
@@ -132,7 +132,7 @@ def evaluate(model, dataloader, device, batch_size=256):
 
     for batch_X, batch_y in dataloader:
 
-        batch_X = batch_X.to(device) 
+        batch_X = batch_X.to(device)
         batch_y = batch_y.to(device)
 
         # Disable gradient computation, then perform forward & get pred
