@@ -75,3 +75,72 @@ class CNN(nn.Module):
         
         return x
     
+
+# RNN model, torch has the rnn models builtin so we just need to complete fc
+# Specifically, a LSTM
+class LSTM(nn.Module):
+    def __init__(self, dropout_p = 0.5):
+        super(LSTM, self).__init__()
+
+        features = 22
+        hidden = 64
+        recurrent = 3
+        self.lstm = nn.LSTM(features, hidden, recurrent, batch_first=True, dropout=dropout_p)
+
+        # fully connect the model
+        self.fc = nn.Sequential(
+            nn.Linear(hidden, 54),
+            nn.BatchNorm1d(num_features=54, eps=1e-05, momentum=0.2, affine=True),
+            nn.ReLU(inplace = True),
+            nn.Dropout(p=dropout_p),
+            nn.Linear(54, 44),
+            nn.BatchNorm1d(num_features=44, eps=1e-05, momentum=0.2, affine=True),
+            nn.ReLU(inplace = True),
+            nn.Linear(44, 24),
+            nn.BatchNorm1d(num_features=24, eps=1e-05, momentum=0.2, affine=True),
+            nn.ReLU(inplace = True),
+            nn.Linear(24, 4),
+        )
+    
+    def forward(self, x):
+        # N = batch size, H = height, W = width of input tensor
+        N, H, W = x.size()
+        # reshape input
+        x = x.view(N, H, W).permute(0, 2, 1)
+        x, _ = self.lstm(x)
+        # pass the last lstm output to the fc layers
+        x = self.fc(x[:, -1, :])
+        return x
+
+# Another RNN, since its preimplemented why not, same FC too
+# This time a GRU
+class GRU(nn.Module):
+    def __init__(self, dropout_p = 0.5):
+        super(GRU, self).__init__()
+
+        features = 22
+        hidden = 64
+        recurrent = 3
+        self.gru = nn.GRU(features, hidden, recurrent, batch_first=True, dropout=dropout_p)
+
+        # fully connect the model
+        self.fc = nn.Sequential(
+            nn.Linear(hidden, 54),
+            nn.BatchNorm1d(num_features=54, eps=1e-03, momentum=0.2, affine=True),
+            nn.ReLU(inplace = True),
+            nn.Dropout(p=dropout_p),
+            nn.Linear(54, 44),
+            nn.BatchNorm1d(num_features=44, eps=1e-03, momentum=0.2, affine=True),
+            nn.ReLU(inplace = True),
+            nn.Linear(44, 4)
+        )
+    
+    def forward(self, x):
+        # N = batch size, H = height, W = width of input tensor
+        N, H, W = x.size()
+        # reshape input
+        x = x.view(N, H, W).permute(0, 2, 1)
+        x, _ = self.gru(x)
+        # pass the last lstm output to the fc layers
+        x = self.fc(x[:, -1, :])
+        return x
