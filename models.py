@@ -144,3 +144,54 @@ class GRU(nn.Module):
         # pass the last lstm output to the fc layers
         x = self.fc(x[:, -1, :])
         return x
+
+# CNN + RNN
+# Based on table 3 of https://www.sciencedirect.com/science/article/pii/S016502702100217X?via%3Dihub#sec0010
+# And figure 3a
+# Had to make changes to fit our data set dimensions mainly, also just did two fc rather than time distributed layer
+# Used LSTM instead for training speed
+class CNN_RNN(nn.Module):
+    def __init__(self, output_size):
+        super(CNN_RNN, self).__init__()
+
+        self.conv1 = nn.Sequential(
+            nn.Conv2d(in_channels=1, out_channels=16, kernel_size=(1, 10)),
+            nn.ReLU(),
+            nn.MaxPool2d(kernel_size=(1, 4)),
+            nn.Dropout(p=0.5)
+        )
+        self.conv2 = nn.Sequential(
+            nn.Conv2d(in_channels=16, out_channels=32, kernel_size=(21, 1)),
+            nn.ReLU(),
+            nn.MaxPool2d(kernel_size=(1, 2)),
+            nn.Dropout(p=0.5)
+        )
+
+        self.fc1 = nn.Linear(64, 64)
+
+        self.rnn = nn.LSTM(64, 128, num_layers=3, batch_first=False)
+
+        self.global_pool = nn.AdaptiveAvgPool1d(1)
+
+        self.fc2 = nn.Linear(128 * 2, output_size)
+
+    def forward(self, x):
+        # CNN
+        x = self.conv1(x.unsqueeze(1))
+        x = self.conv2(x)
+        x = x.transpose(1, 3).flatten(start_dim=2)
+
+        # LSTM
+        x = self.fc1(x).transpose(0, 1)
+        rnn_output, (final_hidden, _) = self.rnn(x)
+        rnn_output = rnn_output.permute(1, 2, 0)    
+        # Global pooling made accuracy worse so im not using it atm
+        pooled_output = self.global_pool(rnn_output).squeeze(2)
+
+        # fc cls
+        output = self.fc2(torch.cat((final_hidden[-2,:,:], final_hidden[-1,:,:]), dim=1))
+        return output
+
+
+
+
