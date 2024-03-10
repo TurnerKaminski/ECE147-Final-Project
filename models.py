@@ -195,3 +195,74 @@ class CNN_RNN(nn.Module):
 
 
 
+# CRNN from discussion 7 tonmoy but slightly changed to deal with dimensions
+class HybridCNNLSTM(nn.Module):
+    def __init__(self):
+        super(HybridCNNLSTM, self).__init__()
+
+        # Convolutional blocks
+        self.conv1 = nn.Sequential(
+            nn.Conv2d(1, 25, kernel_size=(3, 3)),
+            nn.ELU(),
+            nn.MaxPool2d(kernel_size=(3, 1), stride=(2, 1)),
+            nn.BatchNorm2d(25),
+            nn.Dropout(p=0.6)
+        )
+
+        self.conv2 = nn.Sequential(
+            nn.Conv2d(25, 50, kernel_size=(3, 3)),
+            nn.ELU(),
+            nn.MaxPool2d(kernel_size=(3, 1), stride=(2, 1)),
+            nn.BatchNorm2d(50),
+            nn.Dropout(p=0.6)
+        )
+
+        self.conv3 = nn.Sequential(
+            nn.Conv2d(50, 100, kernel_size=(3, 3)),
+            nn.ELU(),
+            nn.BatchNorm2d(100),
+            nn.Dropout(p=0.6)
+        )
+
+        self.conv4 = nn.Sequential(
+            nn.Conv2d(100, 200, kernel_size=(1, 3)),
+            nn.ELU(),
+            nn.BatchNorm2d(200),
+            nn.Dropout(p=0.6)
+        )
+
+        # FC+LSTM layers
+        self.fc = nn.Sequential(
+            nn.Linear(198400, 40),
+            nn.ReLU(),
+            nn.Dropout(p=0.4),
+            nn.Linear(40, 10)
+        )
+
+        self.lstm = nn.LSTM(input_size=10, hidden_size=10, dropout=0.4, batch_first=True)
+
+        # Output layer
+        self.output_layer = nn.Linear(10, 4)
+
+    def forward(self, x):
+        # Convolutional blocks
+        x = self.conv1(x.unsqueeze(1))
+        x = self.conv2(x)
+        x = self.conv3(x)
+        x = self.conv4(x)
+
+        # Flatten
+        x = x.view(x.size(0), -1)
+
+        # FC layer
+        x = self.fc(x)
+
+        # Reshape for LSTM
+        x = x.unsqueeze(-1).transpose(1, 2)
+        # LSTM layer
+        x, _ = self.lstm(x)
+
+        # Output layer
+        x = self.output_layer(x[:, -1])  # Taking the last output of the sequence
+
+        return x
