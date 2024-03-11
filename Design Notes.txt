@@ -1,0 +1,52 @@
+CNN Epoch Optimization:
+
+If I plot the training and validation accuracy of the EEG CNN as listed in the linked paper, the training accuracy hits 100% at around 40
+epochs. Then it will jump around a little before eventually settling down between epochs 60-100. Thus, for the entirety of epochs beyond 
+100 the training accuracy basically never falls below 99, and the model stays hovering around the local minimum it found. However, the
+validation accuracy still jumps around quite a bit, up to around 10% deviation. However, none of this is a problem if we simply save all 
+models encountered during training and then use the one with the highest validation accuracy.
+
+Out of curiosity I decided to try characterizing the association between validation and test accuracy. Is validation accuracy really a 
+good benchmark for how well the model will perform on an unseen test set? The result I got over 100 trials, 100 epochs each was that 
+validation accuracy is only an approximate measure for the test accuracy. The p-value of the association is 8% and the r2 value is ~0.05,
+meaning that only about 5% of the variation in test accuracy per model can be explained by the model's corresponding validation accuracy.
+Nevertheless, there really isn't a better way to optimize for test accuracy.
+
+Creativity/Insight Topics: 
+
+- Train on 1 subject and evaluate test error on all other subjects to see if any subjects are more "similar"
+
+- Train on all subjects and evaluate average error for each individual subject to see if there are any "outliers"
+
+- Timebin goes from 0 to 1000. Train on partial data sets ex: only 0 to 500 and see how much it degrades the performance and what kind of 
+relationship there is. Probably not all of the data is useful for classification
+
+
+Single Subject Model (1) Classifying all other Subjects:
+
+From the data we can see that the test error for subject 6 is particularly poor. This probably means that the EEG features/patterns of
+Subject 6 differ the most greatly from Subject 1. Subjects 3,5,8 would be ones with the most similar EEG patterns.
+
+
+All Subject Model classifying individual subjects:
+
+First test: Subject 4 has the most "average" EEG pattern with a test accuracy of up to 84%, which is like 14% higher than average which
+is quite significant. Subject 2 is the outlier with only 52% test accuracy which is 18% below average.
+
+Second test: Accuracy is a lot more evenly distributed with subject 8 being best performer but subject 2 performed the worst again.
+
+
+Single subject Model (2) vs All Subject Model Classification:
+
+EEGnet classification for subject 2 only plateus after around 100 epochs and validation accuracy goes up to about 50% with test accuracy
+usually hovering around 40%. However, with all subjects together, the training doesn't really plaeteu until around 500 epochs and 
+generalizes much better, with validation and testing error both in mid upper 60s. Ensembling x5 EEGnet 300 epoch can boost test accuracy
+by 6%, which is ~9% relative accuracy gain.
+
+Higher test accuracy is easy to explain with more data aka more signal to noise ratio so features can be learned better. Something that
+also happens is the difference between validation and test accuracy becomes a lot smaller, aka they sort of track each other. Earlier
+I explicitly did an experiment with the subject 1 only case and found that validation and test accuracy don't actually correlate that
+strongly.
+
+Something else to note is that network with all subject data takes far longer to train (like, 8 times longer) even though the batch size 
+should stay the same. Coincidentally there are 9 subjects in total. Is there something going on here?

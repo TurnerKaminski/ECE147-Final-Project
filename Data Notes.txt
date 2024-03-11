@@ -1,0 +1,24 @@
+EOG and Ocular Artifacts in EEG measurements:
+
+Although in the ideal case what the EEG measures will just be brain activity, this is not the case. Many biological/physiological 
+phenomenon lead to EEG 'artifacts' aka signals that show up in the EEG but do not reflect what we are actually trying to measure. 
+According to this Paper 1, ocular (eye) and myographic (muscle) artifacts are generally the most prominent ones in EEG measurements.
+Thus, accurate prediction using EEG data must somehow be able to separate the signals encoding underlying brain activity and those
+encoding other physiological artifacts.
+
+In this particular dataset, they made EOG (Electrooculography) recordings in addition to EEG (Electroencephalogram) recordings.
+EOG is also an electrical based physiological measurement, in particular of the eye. There is a permanent potential difference
+on the order of 10s of millivolts between the back of the eye where the optic nerve connects and the cornea on the surface of
+the eyeball which creates a corresponding electric field. This field is not constant but bends in different directions along 
+with movements of the eye as conductive tissue in and around the eye influence the field. By making separate EOG measurements,
+the authors of this experiment hope that classification methods could make use of the EOG measurements to characterize and
+remove/reduce signal artifacts based on the human eye. In our particular project, the 3 channels containing EOG measurements were 
+ignored due to a lack of field expertise to effectively utilize this data. Thus, the data we are working with will be the raw 
+data containing all artifacts without post processing. Models we use to classify the data must then be able to deal with these
+artifacts.
+
+Paper 1: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4947054/#:~:text=In%20the%20simplest%20way%2C%20the,Gratton%20et%20al.%201983
+
+
+
+

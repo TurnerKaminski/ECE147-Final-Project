@@ -150,9 +150,9 @@ class GRU(nn.Module):
 # And figure 3a
 # Had to make changes to fit our data set dimensions mainly, also just did two fc rather than time distributed layer
 # Used LSTM instead for training speed
-class CNN_RNN(nn.Module):
+class PD_CRNN(nn.Module):
     def __init__(self, output_size):
-        super(CNN_RNN, self).__init__()
+        super(PD_CRNN, self).__init__()
 
         self.conv1 = nn.Sequential(
             nn.Conv2d(in_channels=1, out_channels=16, kernel_size=(1, 10)),
@@ -191,8 +191,6 @@ class CNN_RNN(nn.Module):
         # fc cls
         output = self.fc2(torch.cat((final_hidden[-2,:,:], final_hidden[-1,:,:]), dim=1))
         return output
-
-
 
 
 # CRNN from discussion 7 tonmoy but slightly changed to deal with dimensions

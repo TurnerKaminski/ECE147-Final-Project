@@ -11,7 +11,7 @@ from tqdm.auto import tqdm
 best_model_path = "model_checkpoints/best_model.pt"
 
 # Just set some dummy values for the moment
-def fit(model, X, y, device, epochs=10, batch_size=64, lr=1e-3, weight_decay=0, valid_size=0.2, random_state=0, print_acc=False,):
+def fit(model, X, y, device, epochs=10, batch_size=64, lr=1e-3, weight_decay=0, valid_size=0.2, random_state=0, print_acc=False):
     """
     Trains the model on the provided data and returns the best validation accuracy
 
@@ -55,9 +55,14 @@ def fit(model, X, y, device, epochs=10, batch_size=64, lr=1e-3, weight_decay=0, 
     optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=weight_decay)
     best_acc = 0
 
+    train_accs=[]
+    valid_accs=[]
+
     for _ in tqdm(range(epochs)):
         train_acc = train(model, train_dataloader, optimizer, device)
         valid_acc, _ = evaluate(model, val_dataloader, device)
+        train_accs.append(train_acc)
+        valid_accs.append(valid_acc)
         if print_acc:
             print(f"{train_acc=}, {valid_acc=}")
 
@@ -69,7 +74,7 @@ def fit(model, X, y, device, epochs=10, batch_size=64, lr=1e-3, weight_decay=0, 
     model.load_state_dict(torch.load(best_model_path))
     print(f"Best valid accuracy: {best_acc}")
     
-    return best_acc
+    return best_acc, train_accs, valid_accs
 
 def train(model, dataloader, optimizer, device):
     """
