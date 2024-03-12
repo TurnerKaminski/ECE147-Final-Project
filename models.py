@@ -202,7 +202,7 @@ class HybridCNNLSTM(nn.Module):
         self.conv1 = nn.Sequential(
             nn.Conv2d(1, 25, kernel_size=5),
             nn.ELU(),
-            nn.MaxPool2d(kernel_size=(1, 3), stride=(1, 3)),
+            nn.MaxPool2d(kernel_size=(1, 3)),
             nn.BatchNorm2d(25),
             nn.Dropout(p=0.6)
         )
@@ -210,7 +210,7 @@ class HybridCNNLSTM(nn.Module):
         self.conv2 = nn.Sequential(
             nn.Conv2d(25, 50, kernel_size=5),
             nn.ELU(),
-            nn.MaxPool2d(kernel_size=(1, 3), stride=(1, 3)),
+            nn.MaxPool2d(kernel_size=(1, 3)),
             nn.BatchNorm2d(50),
             nn.Dropout(p=0.6)
         )
@@ -218,7 +218,7 @@ class HybridCNNLSTM(nn.Module):
         self.conv3 = nn.Sequential(
             nn.Conv2d(50, 100, kernel_size=5),
             nn.ELU(),
-            nn.MaxPool2d(kernel_size=(1, 3), stride=(1, 3)),
+            nn.MaxPool2d(kernel_size=(1, 3)),
             nn.BatchNorm2d(100),
             nn.Dropout(p=0.6)
         )
@@ -226,7 +226,7 @@ class HybridCNNLSTM(nn.Module):
         self.conv4 = nn.Sequential(
             nn.Conv2d(100, 200, kernel_size=5),
             nn.ELU(),
-            nn.MaxPool2d(kernel_size=(1, 3), stride=(1, 3)),
+            nn.MaxPool2d(kernel_size=(1, 3)),
             nn.BatchNorm2d(200),
             nn.Dropout(p=0.6)
         )
