@@ -1,0 +1,132 @@
+Question: Explain the individual components of the architecture
+
+Answer:
+
+EEGNet can be described by two convolutional blocks, and a classification block.
+
+Block 1
+
+The first of the convolutional block is a temporal convolutional block. 
+Temporal convolution is a fundamental operation in CNNs applied to sequential data such as time-series signals.
+It starts with a starts with a temporal convolution using 2D filters to capture frequency information from the EEG signals.
+It uses 2D filters, which are essentially matrices with learnable weights, applied across both the temporal (time) and 
+spatial (channel) dimensions of the EEG data.
+By sliding these filters over the input EEG signals, the convolution operation computes a weighted sum of the input 
+values within the filter's receptive field, producing feature maps that capture different frequency components of the EEG signals.
+
+Then we have a depthwise convolution. Depthwise convolution is a variant of standard convolution that operates separately on 
+each input channel, or feature map, and produces an output for each channel.
+In EEGNet's context, depthwise convolution is applied after the temporal convolution to learn spatial filters for each 
+temporal filter.
+This allows the model to learn spatial patterns specific to each frequency band or temporal filter, effectively extracting 
+frequency-specific spatial information. Extracting these spatial patterns for each band makes the data more interpretable and effective.
+
+Past the convolutions, we have batchnorm and ELU for normalizing and activating.
+Dropout to regularize the data, prevent overfitting.
+Pooling is used to downsample, reduce complexity.
+
+Block 2
+
+This block is a serperable convolution block.
+Separable convolution consists of depthwise convolution followed by pointwise convolutions.
+As previously described, depthwise convolution learns a temporal summary of each feature map individually.
+Pointwise convolutions merge the outputs of the depthwise convolution, combining the learned temporal summaries.
+This also reduces the number of parameters that are being fit
+
+And then we do the same things like batchnorm, elu, dropout, pooling.
+
+Classification Block
+
+A dense layer for feature aggregation.
+
+They use a softmax classifier and dont use a dense layer and they just link a diff paper as the reason for this. 
+
+Question: Why is this so effective?
+
+Answer:
+
+One hypothesis we can see from the model summaries, is that tonmoys model which has aggressive max pooling
+in every layer of convolution, still ends up with 1.4 million trainable parameters.
+
+However, this EEGNet model for the same input ends up with only 10k parameters.
+
+The EEGNet paper also emphasizes their low number of parameters when comparing them to existing CNN models,
+being orders of magnitude smaller.
+
+Having orders of magnitude less parameters also means we require less data to train these parameters well. This
+could explain why on single subject data, the model still gets trained fairly well and generalizes ok to other subjects.
+
+And when we give it more data (all subjects), rather than just now being capable of barely training its parameters as we see
+with the larger models, it can now fully flush out these parameters and it now generalizes very well.
+
+This small amount of trainable parameters also allows for less data augmentation to be required for strong performance,
+another reason we are seeing much better results since we are using relatively raw data.
+
+No dataset augmentation also means we are using all features, not prioritizing some or augmenting based on 
+outside knowledge of the dataset.
+
+EEGNet was also the first model to use depthwise/seperable for EEG classification, so it is likely that these 
+types of convolutions are what improved the models ability to extract features better than other models.
+
+In summary, new types of convolutions that are well suited to mapping multiple feature spaces, and small
+amount of trainable parameters that require no data augmentation seem to be the main reasons EEGNet performs
+so well, especially for our use case.
+
+
+Side Questions: Why is RNN overfitting so quickly?
+
+Answer: 
+
+Despite simple architectures, they have a relatively high number of trainable parameters
+
+For ex our LSTM has 100k parameters, making them tend to overfit.
+
+RNNs process data sequentially, updating their internal state based on previous inputs. 
+This sequential nature can make it challenging for RNNs to capture long-term dependencies in the data. 
+Not only this, but they have limited memory window, making long-term dependencies an even larger issue
+As a result, they may end up memorizing specific patterns in the training data rather than learning generalizable representations.
+
+And since sequential data is often noisy, RNN's will often get stuck in noise pattern due to their short memory 
+window which makes them get stuck and fit to noise.
+
+
+List of Ideas for tonmoys model:
+
+- Since we know he had a very high val acc due to data leakage (augmented data after splitting, which gives
+the model more knowledge than it should have), we could try increases the size of the data split.
+
+This would mirror the idea of giving it access to more information, but without causing an issue of data leakage
+or giving the model more information that it should be "allowed" to have.
+
+Since his model is very parameter heavy, it makes intuitive sense that more data means better and quicker learning.
+I tested this with my measly 30 epochs and I see better learning, without a sharp decrease in test acc.
+I tested by changing split size from 80/20 to 95/5
+
+- Decrease dropout rate. Similar to the previous idea, this should give the model acess to more parameters,
+and while it might increase probability of overfitting, it would increase its learning ability.
+I tested by changing from .6 to .3 this 100% caused overfitting, could test with less significant
+changes to the rate but my laptop is starting to be upset with me
+Also tested at .5, this didnt get us to overfitting but val still sticking around 60%
+
+- Learning rate. intuitively a larger rate would allow for quicker training, but we are already using 1e-3 which is by
+no means small. So I don't think theres much here
+Not tested
+
+- Batch size. Larger batch size would result in more accurate gradients making training more accurate,
+but can often result in overfitting. We are currently using 64 which is like mid range
+Not tested
+
+- Playing with number of hidden layers of the LSTM.
+(Keras doesn't state it, but I think Tonmoy's has a single hidden layer). Deeper network (more layers)
+can actually sometimes improve generalization although we risk vanishing/exploding gradients
+Tested with 40, originally our model had 10.
+I think this increased the learning speed quite a bit, but still seems to be locking out around 60%
+Tested with 5, originally our model had 10.
+
+(For this change you need to change hidden size = when calling lstm, and then also change the linear 
+call right below it so first value matches your new hidden size)
+
+These two tests weren't particularly inspiring, although i had to test at the same time as some of my other changes
+
+Summary: My most effective ideas
+

@@ -29,7 +29,7 @@ class CNN(nn.Module):
         F2 = F1 * D
         SampleRate = 32
 
-        # Batch 1
+        # Block 1
         self.conv1 = nn.Sequential(
             nn.Conv2d(in_channels=1, out_channels=F1, kernel_size=(1, 32), bias=False),
             nn.BatchNorm2d(F1)
@@ -44,7 +44,7 @@ class CNN(nn.Module):
         self.avgpool1 = nn.AvgPool2d(kernel_size=(1, 2))
         self.dropout1 = nn.Dropout(p=dropout_p)
         
-        # Batch 2
+        # Block 2
         self.conv2 = nn.Sequential(
             nn.Conv2d(in_channels=F2, out_channels=F2, kernel_size=(1, SampleRate//4), bias=False),
             nn.Conv2d(in_channels=F2, out_channels=F2, kernel_size=(1, 1), bias=False),
@@ -204,7 +204,7 @@ class HybridCNNLSTM(nn.Module):
             nn.ELU(),
             nn.MaxPool2d(kernel_size=(1, 3)),
             nn.BatchNorm2d(25),
-            nn.Dropout(p=0.6)
+            nn.Dropout(p=0.5)
         )
 
         self.conv2 = nn.Sequential(
@@ -212,7 +212,7 @@ class HybridCNNLSTM(nn.Module):
             nn.ELU(),
             nn.MaxPool2d(kernel_size=(1, 3)),
             nn.BatchNorm2d(50),
-            nn.Dropout(p=0.6)
+            nn.Dropout(p=0.5)
         )
 
         self.conv3 = nn.Sequential(
@@ -220,7 +220,7 @@ class HybridCNNLSTM(nn.Module):
             nn.ELU(),
             nn.MaxPool2d(kernel_size=(1, 3)),
             nn.BatchNorm2d(100),
-            nn.Dropout(p=0.6)
+            nn.Dropout(p=0.5)
         )
 
         self.conv4 = nn.Sequential(
@@ -228,7 +228,7 @@ class HybridCNNLSTM(nn.Module):
             nn.ELU(),
             nn.MaxPool2d(kernel_size=(1, 3)),
             nn.BatchNorm2d(200),
-            nn.Dropout(p=0.6)
+            nn.Dropout(p=0.5)
         )
 
         # FC+LSTM layers
@@ -239,10 +239,10 @@ class HybridCNNLSTM(nn.Module):
             nn.Linear(40, 10)
         )
 
-        self.lstm = nn.LSTM(input_size=10, hidden_size=10, dropout=0.4, batch_first=True)
+        self.lstm = nn.LSTM(input_size=10, hidden_size=40, dropout=0.4, batch_first=True)
 
         # Output layer
-        self.output_layer = nn.Linear(10, 4)
+        self.output_layer = nn.Linear(40, 4)
         self.softmax = nn.Softmax(dim=1)
 
 
