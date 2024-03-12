@@ -243,6 +243,8 @@ class HybridCNNLSTM(nn.Module):
 
         # Output layer
         self.output_layer = nn.Linear(10, 4)
+        self.softmax = nn.Softmax(dim=1)
+
 
     def forward(self, x):
         # Convolutional blocks
@@ -264,5 +266,6 @@ class HybridCNNLSTM(nn.Module):
 
         # Output layer
         x = self.output_layer(x[:, -1])  # Taking the last output of the sequence
+        x = self.softmax(x)
 
         return x
