@@ -1,6 +1,7 @@
 # This is the file in which we will define the training functionality
 
 # Imports
+from time import time
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -11,7 +12,7 @@ from tqdm.auto import tqdm
 best_model_path = "model_checkpoints/best_model.pt"
 
 # Just set some dummy values for the moment
-def fit(model, X, y, device, epochs=10, batch_size=64, lr=1e-3, weight_decay=0, valid_size=0.2, random_state=0, print_acc=False):
+def fit(model, X, y, device, time_bin=None, epochs=10, batch_size=64, lr=1e-3, weight_decay=0, valid_size=0.2, random_state=0, print_acc=False):
     """
     Trains the model on the provided data and returns the best validation accuracy
 
@@ -58,8 +59,12 @@ def fit(model, X, y, device, epochs=10, batch_size=64, lr=1e-3, weight_decay=0, 
     train_accs=[]
     valid_accs=[]
 
+
+    if time_bin is None:
+        time_bin = len(train_dataloader)
+
     for _ in tqdm(range(epochs)):
-        train_acc = train(model, train_dataloader, optimizer, device)
+        train_acc = train(model, train_dataloader, optimizer, time_bin, device)
         valid_acc, _ = evaluate(model, val_dataloader, device)
         train_accs.append(train_acc)
         valid_accs.append(valid_acc)
@@ -76,7 +81,7 @@ def fit(model, X, y, device, epochs=10, batch_size=64, lr=1e-3, weight_decay=0, 
     
     return best_acc, train_accs, valid_accs
 
-def train(model, dataloader, optimizer, device):
+def train(model, dataloader, optimizer, time_bin, device):
     """
     Training function that trains over a single epoch
 
@@ -95,7 +100,9 @@ def train(model, dataloader, optimizer, device):
     loss_fn = nn.CrossEntropyLoss()
     correct = total = 0
 
+    batches_trained = 0
     for batch_X, batch_y in dataloader:
+        batches_trained += 1
         # Fresh gradients
         optimizer.zero_grad()
 
@@ -112,6 +119,8 @@ def train(model, dataloader, optimizer, device):
         loss = loss_fn(output, batch_y)
         loss.backward()
         optimizer.step()
+        if batches_trained > time_bin:
+            break;
 
     accuracy = correct / total 
     return round(accuracy, 5)
