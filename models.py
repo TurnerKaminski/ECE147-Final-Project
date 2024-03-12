@@ -200,38 +200,40 @@ class HybridCNNLSTM(nn.Module):
 
         # Convolutional blocks
         self.conv1 = nn.Sequential(
-            nn.Conv2d(1, 25, kernel_size=(3, 3)),
+            nn.Conv2d(1, 25, kernel_size=5),
             nn.ELU(),
-            nn.MaxPool2d(kernel_size=(3, 1), stride=(2, 1)),
+            nn.MaxPool2d(kernel_size=(1, 3), stride=(1, 3)),
             nn.BatchNorm2d(25),
             nn.Dropout(p=0.6)
         )
 
         self.conv2 = nn.Sequential(
-            nn.Conv2d(25, 50, kernel_size=(3, 3)),
+            nn.Conv2d(25, 50, kernel_size=5),
             nn.ELU(),
-            nn.MaxPool2d(kernel_size=(3, 1), stride=(2, 1)),
+            nn.MaxPool2d(kernel_size=(1, 3), stride=(1, 3)),
             nn.BatchNorm2d(50),
             nn.Dropout(p=0.6)
         )
 
         self.conv3 = nn.Sequential(
-            nn.Conv2d(50, 100, kernel_size=(3, 3)),
+            nn.Conv2d(50, 100, kernel_size=5),
             nn.ELU(),
+            nn.MaxPool2d(kernel_size=(1, 3), stride=(1, 3)),
             nn.BatchNorm2d(100),
             nn.Dropout(p=0.6)
         )
 
         self.conv4 = nn.Sequential(
-            nn.Conv2d(100, 200, kernel_size=(1, 3)),
+            nn.Conv2d(100, 200, kernel_size=5),
             nn.ELU(),
+            nn.MaxPool2d(kernel_size=(1, 3), stride=(1, 3)),
             nn.BatchNorm2d(200),
             nn.Dropout(p=0.6)
         )
 
         # FC+LSTM layers
         self.fc = nn.Sequential(
-            nn.Linear(198400, 40),
+            nn.Linear(12000, 40),
             nn.ReLU(),
             nn.Dropout(p=0.4),
             nn.Linear(40, 10)

@@ -12,7 +12,7 @@ from tqdm.auto import tqdm
 best_model_path = "model_checkpoints/best_model.pt"
 
 # Just set some dummy values for the moment
-def fit(model, X, y, device, time_bin=None, epochs=10, batch_size=64, lr=1e-3, weight_decay=0, valid_size=0.2, random_state=0, print_acc=False):
+def fit(model, X, y, device, time_bin=None, epochs=10, batch_size=64, lr=1e-3, weight_decay=0, valid_size=0.2, print_acc=False):
     """
     Trains the model on the provided data and returns the best validation accuracy
 
