@@ -59,7 +59,6 @@ def fit(model, X, y, device, time_bin=None, epochs=10, batch_size=64, lr=1e-3, w
     train_accs=[]
     valid_accs=[]
 
-
     if time_bin is None:
         time_bin = len(train_dataloader)
 

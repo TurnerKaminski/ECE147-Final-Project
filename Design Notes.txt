@@ -34,6 +34,7 @@ First test: Subject 4 has the most "average" EEG pattern with a test accuracy of
 is quite significant. Subject 2 is the outlier with only 52% test accuracy which is 18% below average.
 
 Second test: Accuracy is a lot more evenly distributed with subject 8 being best performer but subject 2 performed the worst again.
+Not sure if there is a consistent pattern, may need to do statistical test
 
 
 Single subject Model (2) vs All Subject Model Classification:
@@ -50,3 +51,15 @@ strongly.
 
 Something else to note is that network with all subject data takes far longer to train (like, 8 times longer) even though the batch size 
 should stay the same. Coincidentally there are 9 subjects in total. Is there something going on here?
+
+
+Basically all of these tests require quite a lot of computing power. It runs my laptop RTX 3060 up pretty hot and apparently cannot run 
+on the M1 macbook at all.
+
+
+Seemingly surprisng result we have stumbled across is that only 300 out of 1000 time bins is really necessary to get good traing results. 
+Our next steps will be to run a "scouting" loop over all time bin lengths and then for ones with high test accuracy, try performing 
+statistical analysis to identify if there is some ideal time bin length.
+
+Still feel interested in doing some subject to all/all to subject level comparisons but they didn't seem to yield anything particularly 
+interesting last time. This time bin result is interesting because it may tell us something about the data.
