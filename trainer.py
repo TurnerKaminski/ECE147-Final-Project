@@ -120,7 +120,7 @@ def train(model, dataloader, optimizer, time_bin, device):
         loss.backward()
         optimizer.step()
         if batches_trained > time_bin:
-            break;
+            break
 
     accuracy = correct / total 
     return round(accuracy, 5)
