@@ -269,3 +269,80 @@ class HybridCNNLSTM(nn.Module):
         x = self.softmax(x)
 
         return x
+
+
+class small_CRNN(nn.Module):
+    def __init__(self):
+        super(small_CRNN, self).__init__()
+
+        # Convolutional blocks
+        self.conv1 = nn.Sequential(
+            nn.Conv2d(1, 16, kernel_size=3),
+            nn.ELU(),
+            nn.MaxPool2d(kernel_size=(1, 3)),
+            nn.BatchNorm2d(16),
+            nn.Dropout(p=0.5)
+        )
+
+        self.conv2 = nn.Sequential(
+            nn.Conv2d(16, 32, kernel_size=3),
+            nn.ELU(),
+            nn.MaxPool2d(kernel_size=(1, 3)),
+            nn.BatchNorm2d(32),
+            nn.Dropout(p=0.5)
+        )
+
+        self.conv3 = nn.Sequential(
+            nn.Conv2d(32, 64, kernel_size=3),
+            nn.ELU(),
+            nn.MaxPool2d(kernel_size=(1, 3)),
+            nn.BatchNorm2d(64),
+            nn.Dropout(p=0.5)
+        )
+
+        self.conv4 = nn.Sequential(
+            nn.Conv2d(64, 80, kernel_size=3),
+            nn.ELU(),
+            nn.MaxPool2d(kernel_size=(1, 3)),
+            nn.BatchNorm2d(80),
+            nn.Dropout(p=0.5)
+        )
+
+        # FC+LSTM layers
+        self.fc = nn.Sequential(
+            nn.Linear(12320, 40),
+            nn.ReLU(),
+            nn.Dropout(p=0.4),
+            nn.Linear(40, 10)
+        )
+
+        self.lstm = nn.LSTM(input_size=10, hidden_size=40, dropout=0.4, batch_first=True)
+
+        # Output layer
+        self.output_layer = nn.Linear(40, 4)
+        self.softmax = nn.Softmax(dim=1)
+
+
+    def forward(self, x):
+        # Convolutional blocks
+        x = self.conv1(x.unsqueeze(1))
+        x = self.conv2(x)
+        x = self.conv3(x)
+        x = self.conv4(x)
+
+        # Flatten
+        x = x.view(x.size(0), -1)
+
+        # FC layer
+        x = self.fc(x)
+
+        # Reshape for LSTM
+        x = x.unsqueeze(-1).transpose(1, 2)
+        # LSTM layer
+        x, _ = self.lstm(x)
+
+        # Output layer
+        x = self.output_layer(x[:, -1])  # Taking the last output of the sequence
+        x = self.softmax(x)
+
+        return x
