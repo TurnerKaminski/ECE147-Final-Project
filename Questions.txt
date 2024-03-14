@@ -1,0 +1,97 @@
+Question: Why are CNNs "generally" more suited to finding spatial features
+
+Answer:
+
+While convolutions can capture temporal patterns to some extent, this is not their specialty.
+Temporal patterns in data involve the sequential ordering of events over time.
+CNNs inherently lack the ability to capture long-range temporal dependencies effectively. They are limited 
+in their ability to remember information from distant time points, which is needed for capturing complex 
+temporal dynamics present in sequential data like time series
+
+Unlike spatial patterns, which are concerned with the arrangement of elements within a single snapshot 
+(can think of as an image), temporal patterns involve the evolution of information over time.
+The receptive field of a convolutional filter in a CNN is typically small compared to the length of a 
+sequence in time series data.
+While stacking multiple convolutional layers can increase the receptive field, it still may not be 
+enough to capture long-range dependencies effectively.
+
+Pooling layers in CNNs are often used to downsample feature maps and condense spatial information which 
+makes finding spatial patterns easier.
+However pooling does not consider ordering, so we lose temporal info, losing temporal patterns.
+While pooling helps in achieving translation invariance (removing noise/small changes and gives us better 
+wholistic view) and reducing the computational cost, it is not suitable for capturing the temporal context 
+necessary for understanding sequential data.
+
+There is also a concept of shared weights making CNNs better for spatial and worse for temporal, but I struggled
+with this concept especially for EEG data, so I'm not going to attempt to BS an explanation to you.
+
+Question: Clarify why EEGNet captures multiple feature spaces better than normal convolution
+
+Answer:
+
+Since EEGNet is designed for EEG data (which clearly emphasizes temporal feature), they worked around this.
+
+In Block 1 of EEGNet, the first convolution is specifically designed to be a temporal focused convolution.
+It uses a convolution designed to focus on the temporal axis.
+During the convolution operation, the filter is applied to each temporal window of the input EEG signal.
+At each step, the filter computes a weighted sum of the input values within the window, producing an output value.
+By sliding the filter across the entire temporal axis of the input EEG signal, the convolutional layer generates 
+feature maps containing the EEG signal at different band-pass frequencies.
+While the convolutional operation itself occurs along the time axis, the learned filters are sensitive to frequency 
+characteristics within the temporal windows.
+
+This would usually not be super helpful for a CNN, because we then just lose the good spatial recognition that 
+CNN's offer, this is why EEGNet then uses a depthwise convolution which was new to EEG CNNs.
+This Depthwise convolution can then analyze the spatial dimension of each of the produced temporal features that the
+first convolution created.
+They describe this process as creating a set of "frequency-specific spatial filters"
+
+
+
+Question: How does RNN in a CRNN?
+
+Answer:
+
+Let's look at Tonmoy's model specifically. The input data is processed by CNN and FC layers before being passed to 
+the LSTM. These layers extract features from the raw EEG data, and the resulting feature vectors represent 
+information from multiple consecutive time bins.
+
+The LSTM processes sequences of these feature vectors, not individual time bins.
+Each sequence represents a segment of EEG data, covering a longer temporal window defined by the number of 
+time bins represented by each feature vector.
+The LSTM captures temporal dependencies within these sequences of feature vectors, allowing it to understand 
+patterns and relationships in the EEG data over time.
+
+However, this encounters a problem we discussed earlier with convolutions losing temporal info through the use
+of pooling.
+So in Tonmoy's CRNN architecture, I believe there is a potential loss of temporal information due to the pooling 
+operations applied in the convolutional layers. Pooling layers, such as max-pooling, downsample the input by 
+reducing its spatial dimensions.
+As a result, the temporal resolution of the data may be reduced, leading to a loss of fine-grained temporal information 
+before we make it to the LSTM, which reduces the effectiveness of the LSTM, which makes the model worse
+at finding good temporal patterns.
+
+^ This would be a good hypothesis for insights, seeing as EEGNet finds these temporal patterns first,
+and then finds spatial features for each temporal feature, which significantly reduces the amount of temporal
+info that we lose.
+
+
+Question:  What advantage lies in a CRNN to CNN for EEG data?
+
+Answer:
+
+It really is just the idea that we can add a RNN to a CNN in order to assist the CNN in finding temporal patterns.
+
+This approach allows CRNNs to effectively analyze EEG data, as it incorporates both spatial and temporal 
+information in a single framework. 
+
+And CRNNs offer more flexibility and easier design, as they can be tailored to specific EEG analysis tasks 
+without requiring intricate designs of convolutional layers like EEGNet relies on. I think from what I am 
+understanding, this flexibility/adaptability is the main draw.
+
+So it seems like its a trade off of ease of design and giving up slight conceptual loss.
+
+I'm sure I am simplifying a bit, there may be cases where if you augment the data a very specific way, you
+don't lose significant amounts of time data by doing spatial convolutions first, but conceptually it feels much
+worse to me than EEGNets concept.
+
