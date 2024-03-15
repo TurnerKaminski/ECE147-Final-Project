@@ -20,7 +20,7 @@ import torch.nn.functional as F
 # Table 2
 # https://iopscience.iop.org/article/10.1088/1741-2552/aace8c#jneaace8cs2-2-1
 class CNN(nn.Module):
-    def __init__(self, input_size, N, dropout_p=0.5):
+    def __init__(self, input_size=(22,400), N=4, dropout_p=0.5):
         super(CNN, self).__init__()
         
         C = 22 # num electrodes
@@ -40,7 +40,7 @@ class CNN(nn.Module):
             nn.BatchNorm2d(F2),
             nn.ELU()
         )
-        
+
         self.avgpool1 = nn.AvgPool2d(kernel_size=(1, 2))
         self.dropout1 = nn.Dropout(p=dropout_p)
         
@@ -194,9 +194,9 @@ class PD_CRNN(nn.Module):
 
 
 # CRNN from discussion 7 tonmoy but slightly changed to deal with dimensions
-class HybridCNNLSTM(nn.Module):
+class TonmoyNet(nn.Module):
     def __init__(self):
-        super(HybridCNNLSTM, self).__init__()
+        super(TonmoyNet, self).__init__()
 
         # Convolutional blocks
         self.conv1 = nn.Sequential(
@@ -233,13 +233,13 @@ class HybridCNNLSTM(nn.Module):
 
         # FC+LSTM layers
         self.fc = nn.Sequential(
-            nn.Linear(12000, 40),
+            nn.Linear(2400, 40),
             nn.ReLU(),
             nn.Dropout(p=0.4),
-            nn.Linear(40, 10)
+            #nn.Linear(40, 10)
         )
 
-        self.lstm = nn.LSTM(input_size=10, hidden_size=40, dropout=0.4, batch_first=True)
+        #self.lstm = nn.LSTM(input_size=10, hidden_size=40, dropout=0.4, batch_first=True)
 
         # Output layer
         self.output_layer = nn.Linear(40, 4)
@@ -262,73 +262,54 @@ class HybridCNNLSTM(nn.Module):
         # Reshape for LSTM
         x = x.unsqueeze(-1).transpose(1, 2)
         # LSTM layer
-        x, _ = self.lstm(x)
+        #x, _ = self.lstm(x)
 
         # Output layer
         x = self.output_layer(x[:, -1])  # Taking the last output of the sequence
         x = self.softmax(x)
 
         return x
-
-
-class small_CRNN(nn.Module):
+    
+class TonmoyV2(nn.Module):
     def __init__(self):
-        super(small_CRNN, self).__init__()
+        super(TonmoyV2, self).__init__()
 
         # Convolutional blocks
         self.conv1 = nn.Sequential(
-            nn.Conv2d(1, 16, kernel_size=3),
-            nn.ELU(),
-            nn.MaxPool2d(kernel_size=(1, 3)),
+            nn.Conv2d(1, 16, kernel_size=(22, 1)),
             nn.BatchNorm2d(16),
-            nn.Dropout(p=0.5)
+            nn.ELU(),
         )
 
-        self.conv2 = nn.Sequential(
-            nn.Conv2d(16, 32, kernel_size=3),
-            nn.ELU(),
-            nn.MaxPool2d(kernel_size=(1, 3)),
-            nn.BatchNorm2d(32),
-            nn.Dropout(p=0.5)
-        )
+        self.avgpool1 = nn.AvgPool2d(kernel_size=(1, 2))
+        self.dropout1 = nn.Dropout(p=0.5)
 
         self.conv3 = nn.Sequential(
-            nn.Conv2d(32, 64, kernel_size=3),
+            nn.BatchNorm2d(16),
             nn.ELU(),
-            nn.MaxPool2d(kernel_size=(1, 3)),
-            nn.BatchNorm2d(64),
-            nn.Dropout(p=0.5)
-        )
-
-        self.conv4 = nn.Sequential(
-            nn.Conv2d(64, 80, kernel_size=3),
-            nn.ELU(),
-            nn.MaxPool2d(kernel_size=(1, 3)),
-            nn.BatchNorm2d(80),
-            nn.Dropout(p=0.5)
+            nn.AvgPool2d(1, 4),
+            nn.Dropout(p=0.5),
         )
 
         # FC+LSTM layers
         self.fc = nn.Sequential(
-            nn.Linear(12320, 40),
+            nn.Linear(800, 5),
             nn.ReLU(),
-            nn.Dropout(p=0.4),
-            nn.Linear(40, 10)
         )
 
-        self.lstm = nn.LSTM(input_size=10, hidden_size=40, dropout=0.4, batch_first=True)
+        self.lstm = nn.LSTM(input_size=5, hidden_size=20, dropout=0, batch_first=True)
 
         # Output layer
-        self.output_layer = nn.Linear(40, 4)
+        self.output_layer = nn.Linear(20, 4)
         self.softmax = nn.Softmax(dim=1)
 
 
     def forward(self, x):
         # Convolutional blocks
         x = self.conv1(x.unsqueeze(1))
-        x = self.conv2(x)
+        x = self.avgpool1(x)
+        x = self.dropout1(x)
         x = self.conv3(x)
-        x = self.conv4(x)
 
         # Flatten
         x = x.view(x.size(0), -1)
@@ -346,3 +327,4 @@ class small_CRNN(nn.Module):
         x = self.softmax(x)
 
         return x
+    
