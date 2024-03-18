@@ -19,5 +19,6 @@ This folder just holds python notebooks that were used for gathering more specif
 This folder is where we stored all the data for the project except for the data sets that are not public. This includes our best models, screenshots of plots, etc.
 
 **Thoughts**
+
 This folder just holds text files holding some thoughts and questions for each other as we worked through this project.
 
